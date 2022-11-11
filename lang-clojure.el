@@ -1,4 +1,4 @@
-;;; corgi-clojure.el --- Clojure configuration for Corgi -*- lexical-binding: t -*-
+;;; lang-clojure.el --- Clojure configuration  -*- lexical-binding: t -*-
 ;;
 ;; Filename: corgi-clojure.el
 ;; Package-Requires: ((use-package) (cider) (clj-ns-name) (clojure-mode))
@@ -21,6 +21,17 @@
         ;; cider complaining.
         clojure-verify-major-mode nil))
 
+(use-package kaocha-runner
+  :general
+  (dh/local-leader-keys
+    :states  '(normal visual)
+    :keymaps 'clojure-mode-map
+    "k" '(:ignore t :wk "kaocha tests")
+    "k t" '(kaocha-runner-run-test-at-point :wk "run (t)est at point")
+    "k s" '(cider-test-rerun-tests :wk "(s)how warnings from test/s")
+    "k n" '(kaocha-runner-run-tests :wk "run (n)amespace tests")
+    "k p" '(kaocha-runner-run-all-tests :wk "run all (p)roject tests")))
+
 (use-package cider
   :custom
   (cider-show-error-buffer nil)
@@ -29,7 +40,7 @@
   (evil-collection-cider-setup)
   :general
   (dh/local-leader-keys
-    :states 'normal
+    :states '(normal visual)
     :keymaps 'clojure-mode-map
     "'" '(cider-jack-in :wk "cider jack in clj")
     "\"" '(cider-jack-in-cljs :wk "cider jack in cljs")
@@ -38,7 +49,7 @@
     "e e" '(cider-eval-last-sexp :which-key "eval last s(e)xp")
     "e r" '(cider-eval-list-at-point :which-key "eval oute(r)most sexp")
     "t"   '(:ignore t :wk "(t)est")
-    "t t" '(cider-test-run-loaded-tests :wk "run (t)est at point")
+    "t t" '(cider-test-run-test :wk "run (t)est at point")
     "t f" '(cider-test-rerun-failed-tests :wk "re-run (f)ailed tests")
     "t r" '(cider-test-rerun-tests :wk "(r)e-run tests")
     "t n" '(cider-test-run-ns-tests :wk "run (n)amespace tests")
@@ -55,4 +66,4 @@
 
 (provide 'lang-clojure)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; corgi-clojure.el ends here
+;;; lang-clojure.el ends here

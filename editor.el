@@ -173,8 +173,8 @@
     "x -" '(text-scale-decrease :wk "- font")
     "o"   '(:ignore t :which-key "Open")
     "q"   '(:ignore t :which-key "Quit")
-    "qq"  '(kill-emacs :which-key "quit emacs")
-    "qQ"  '(save-buffers-kill-emacs :which-key "save all buffers and quit emacs")))
+    "q q"  '(kill-emacs :which-key "quit emacs")
+    "q Q"  '(save-buffers-kill-emacs :which-key "save all buffers and quit emacs")))
 
 (use-package evil
   :init
