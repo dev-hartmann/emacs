@@ -21,6 +21,10 @@
         ;; cider complaining.
         clojure-verify-major-mode nil))
 
+(add-hook 'clojure-mode-hook 'lsp)
+(add-hook 'clojurescript-mode-hook 'lsp)
+(add-hook 'clojurec-mode-hook 'lsp)
+
 (use-package kaocha-runner
   :general
   (dh/local-leader-keys
@@ -53,7 +57,13 @@
     "t f" '(cider-test-rerun-failed-tests :wk "re-run (f)ailed tests")
     "t r" '(cider-test-rerun-tests :wk "(r)e-run tests")
     "t n" '(cider-test-run-ns-tests :wk "run (n)amespace tests")
-    "t p" '(cider-test-run-project-tests :wk "run all (p)roject tests")))
+    "t p" '(cider-test-run-project-tests :wk "run all (p)roject tests")
+    "r"   '(:ignore t :wk "(r)epl")
+    "r q" '(cider-quit :wk "(q)uit cider")
+    "r r" '(cider-restart :wk "(r)estart cider")
+    "r n" '(cider-repl-set-ns :w "set repl to current (n)amespace")
+
+    ))
 
 (defadvice cider-find-var (before add-evil-jump activate)
   (evil-set-jump))
@@ -61,6 +71,11 @@
 (use-package clj-ns-name
   :config
   (clj-ns-name-install))
+
+(use-package clj-refactor
+  :defer t
+  :diminish clj-refactor-mode
+  :config (cljr-add-keybindings-with-prefix "C-c C-m"))
 
 (use-package clojure-snippets)
 

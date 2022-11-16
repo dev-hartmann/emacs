@@ -108,6 +108,20 @@
 
 (use-package undo-fu)
 
+(defun dh/create-vertical-window-and-projectile-find ()
+  (interactive)
+  (split-window-right)
+  (windmove-right)
+  (consult-projectile-find-file)
+  (balance-windows))
+
+(defun dh/close-window-and-balance ()
+  (interactive)
+  (delete-window)
+  (balance-windows))
+
+
+
 ;; EVIL mode and packages
 (use-package general
   :config
@@ -168,6 +182,12 @@
     "h K" 'describe-keymap
     "h p" 'describe-package
     "h v" 'describe-variable
+    "w"   '(:ignore t wk: "window commands")
+    "w v" '(dh/create-vertical-window-and-projectile-find :wk "split (V), move, find")
+    "w h" '(windmove-left :wk "move to left window")
+    "w l" '(windmove-right :wk "move to right window")
+    "w c" '(dh/close-window-and-balance :wk "(c)lose current window")
+    "w =" '(balance-windows :wk "balance windows")
     "x"   '(:ignore t :which-key "te(x)t")
     "x +" '(text-scale-increase :wk "+ font")
     "x -" '(text-scale-decrease :wk "- font")
