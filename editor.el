@@ -120,7 +120,11 @@
   (delete-window)
   (balance-windows))
 
-
+(defun dh/conditional-imenu ()
+  (interactive)
+  (if (lsp-session)
+      (lsp-ui-imenu)
+    (consult-imenu)))
 
 ;; EVIL mode and packages
 (use-package general
@@ -136,6 +140,10 @@
     :prefix "SPC m"
     :global-prefix "M-SPC")
 
+  (general-define-key
+   :states 'motion
+   "g O" '(dh/conditional-imenu :wk "imenu"))
+
   (dh/local-leader-keys
     :states 'normal
     :keymaps 'emacs-lisp-mode-map
@@ -146,6 +154,7 @@
     "e r" '(eval-region :which-key "eval (r)egion"))
 
   (dh/leader-keys
+    "SPC"'(execute-extended-command :wk "execute extended cmd")
     "f"  '(:ignore t :which-key "(f)iles")
     "ff" '(find-file :which-key "find file")
     "s"  '(:ignore t :which-key "(s)earch")
@@ -213,6 +222,12 @@
         evil-visual-state-cursor '(box "#F86155")
         evil-emacs-state-cursor  '(box "purple")))
 
+(use-package evil-multiedit
+  :after evil
+  :diminish evil-multiedit
+  :config
+  (evil-multiedit-default-keybinds))
+
 (use-package evil-collection
   :after evil
   :diminish evil-collection
@@ -226,7 +241,7 @@
   :after evil
   :demand
   :init
-  (setq evil-goggles-duration 1.5)
+  (setq evil-goggles-duration 0.2)
   :config
   (push '(evil-operator-eval
           :face evil-goggles-yank-face
@@ -361,7 +376,8 @@
 ;; Completion frontend
 (use-package company
   :diminish company-mode
-  :hook (prog-mode . company-mode)
+  :hook ((prog-mode . company-mode)
+         (lsp-mode . company-mode))
   :config
   (setq company-idle-delay 0
         company-minimum-prefix-length 1)

@@ -24,6 +24,7 @@
 (add-hook 'clojure-mode-hook 'lsp)
 (add-hook 'clojurescript-mode-hook 'lsp)
 (add-hook 'clojurec-mode-hook 'lsp)
+(add-hook 'clojure-mode-hook #'evil-cleverparens-mode)
 
 (use-package kaocha-runner
   :general
@@ -43,6 +44,10 @@
   :config
   (evil-collection-cider-setup)
   :general
+  (general-define-key
+   :states '(normal visual motion)
+   "g D" '(lsp-ui-peek-find-references  :wk "find references")
+   "g R" '(lsp-rename  :wk "rename thing at point"))
   (dh/local-leader-keys
     :states '(normal visual)
     :keymaps 'clojure-mode-map
@@ -61,9 +66,7 @@
     "r"   '(:ignore t :wk "(r)epl")
     "r q" '(cider-quit :wk "(q)uit cider")
     "r r" '(cider-restart :wk "(r)estart cider")
-    "r n" '(cider-repl-set-ns :w "set repl to current (n)amespace")
-
-    ))
+    "r n" '(cider-repl-set-ns :w "set repl to current (n)amespace")))
 
 (defadvice cider-find-var (before add-evil-jump activate)
   (evil-set-jump))
