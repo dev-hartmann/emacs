@@ -162,13 +162,11 @@
 (setq ring-bell-function 'ignore)
 
 ;; Configure mac modifiers to be what you expect, and turn off the bell noise
-(when (equal system-type 'darwin)
-  (with-no-warnings
-    (setq ns-use-native-fullscreen nil)
-    (setq mac-command-key-is-meta nil)
-    (setq mac-command-modifier 'super)
-    (setq mac-option-key-is-meta t)
-    (setq mac-option-modifier 'meta)
-    (setq mac-right-option-modifier nil)))
+(when (eq system-type 'darwin)
+  (setq mac-command-key-is-meta nil)
+  (setq mac-command-modifier 'super)
+  (setq mac-option-key-is-meta t)
+  (setq mac-option-modifier 'meta)
+  (setq mac-right-option-modifier nil))
 
 (provide 'defaults)

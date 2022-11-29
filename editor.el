@@ -6,6 +6,8 @@
 ;;; Code:
 (require 'use-package)
 
+(cua-mode 1)
+
 (use-package eldoc
   :hook (emacs-lisp-mode cider-mode))
 
@@ -126,6 +128,22 @@
       (lsp-ui-imenu)
     (consult-imenu)))
 
+(use-package undo-tree
+  :straight t
+  :diminish undo-tree
+  :custom
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
+  :config
+  (global-undo-tree-mode))
+
+(defun dh/undo-tree-split-side-by-side (original-function &rest args)
+  "Split undo-tree side-by-side"
+  (let ((split-height-threshold nil)
+        (split-width-threshold 0))
+    (apply original-function args)))
+
+(advice-add 'undo-tree-visualize :around #'dh/undo-tree-split-side-by-side)
+
 ;; EVIL mode and packages
 (use-package general
   :config
@@ -142,6 +160,7 @@
 
   (general-define-key
    :states 'motion
+   "U"  '(undo-tree-visualize :wk "undo tree")
    "g O" '(dh/conditional-imenu :wk "imenu"))
 
   (dh/local-leader-keys
@@ -410,4 +429,18 @@
 
 (use-package expand-region)
 
-(use-package string-edit)
+(use-package bazel)
+
+(use-package kubernetes)
+
+(use-package kubernetes-helm
+  :after kubernetes)
+
+(use-package sql)
+
+(use-package sqlformat
+  :commands (sqlformat sqlformat-buffer sqlformat-region)
+  :hook (sql-mode . sqlformat-on-save-mode)
+  :init
+  (setq sqlformat-command 'pgformatter
+        sqlformat-args '("-s2" "-g" "-u1")))
