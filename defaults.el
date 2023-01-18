@@ -26,10 +26,6 @@
 (add-hook 'dired-mode-hook #'auto-revert-mode)
 (global-auto-revert-mode 1)
 
-;; Line numbers etc
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-(add-hook 'text-mode-hook 'display-line-numbers-mode)
-(line-number-mode t)
 ;; Show keystrokes in progress
 (setq echo-keystrokes 0.1)
 
@@ -72,6 +68,8 @@
 (setq-default transient-mark-mode t)
 
 ;; Always display line and column numbers
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'text-mode-hook 'display-line-numbers-mode)
 (setq line-number-mode t)
 (setq column-number-mode t)
 
@@ -112,6 +110,7 @@
 (setq require-final-newline t)
 
 ;; Version Control
+;; Stop asking about following symlinks to version controlled files
 (setq vc-follow-symlinks t)
 (setq vc-make-backup-files nil)
 (setq version-control t)
@@ -133,9 +132,6 @@
       `(("." . ,(expand-file-name "backups" user-emacs-directory)))
       auto-save-file-name-transforms
       `((".*" ,(expand-file-name "auto-save-list/" user-emacs-directory) t)))
-
-;; Stop asking about following symlinks to version controlled files
-(setq vc-follow-symlinks t)
 
 ;; Configure common Emoji fonts, making it more likely that Emoji will work out of the box
 (set-fontset-font t 'symbol "Apple Color Emoji")
@@ -163,10 +159,16 @@
 
 ;; Configure mac modifiers to be what you expect, and turn off the bell noise
 (when (eq system-type 'darwin)
-  (setq mac-command-key-is-meta nil)
   (setq mac-command-modifier 'super)
   (setq mac-option-key-is-meta t)
   (setq mac-option-modifier 'meta)
-  (setq mac-right-option-modifier nil))
+  (setq mac-right-option-modifier nil)
+  (global-set-key (kbd "s-s") 'save-buffer)             ;; save
+  (global-set-key (kbd "s-S") 'write-file)              ;; save as
+  (global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ;; quit
+  (global-set-key (kbd "s-a") 'mark-whole-buffer)
+  (global-set-key (kbd "s-v") 'yank) ;; quit
+  (global-set-key (kbd "s-c") 'kill-ring-save);; quit
+  (global-set-key (kbd "s-x") 'kill-region))
 
 (provide 'defaults)

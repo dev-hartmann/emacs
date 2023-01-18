@@ -2,6 +2,7 @@
 ;; can follow the same pattern if you want to split out other bits of config.
 (load-file (expand-file-name "bootstrap.el" user-emacs-directory))
 (load-file (expand-file-name "defaults.el" user-emacs-directory))
+(load-file (expand-file-name "custom-functions.el" user-emacs-directory))
 (load-file (expand-file-name "editor.el" user-emacs-directory))
 (load-file (expand-file-name "ui.el" user-emacs-directory))
 (load-file (expand-file-name "lang-clojure.el" user-emacs-directory))
@@ -73,10 +74,6 @@
   :ensure nil
   :hook (before-save . whitespace-cleanup))
 
-;; Enabling desktop-save-mode will save and restore all buffers between sessions
-(setq desktop-restore-frames nil)
-(desktop-save-mode 1)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -86,7 +83,26 @@
  '(custom-safe-themes
    '("c865644bfc16c7a43e847828139b74d1117a6077a845d16e71da38c8413a5aaa" default))
  '(safe-local-variable-values
-   '((cider-format-code-options
+   '((elisp-lint-indent-specs
+      (if-let* . 2)
+      (when-let* . 1)
+      (let* . defun)
+      (nrepl-dbind-response . 2)
+      (cider-save-marker . 1)
+      (cider-propertize-region . 1)
+      (cider-map-repls . 1)
+      (cider--jack-in . 1)
+      (cider--make-result-overlay . 1)
+      (insert-label . defun)
+      (insert-align-label . defun)
+      (insert-rect . defun)
+      (cl-defun . 2)
+      (with-parsed-tramp-file-name . 2)
+      (thread-first . 0)
+      (thread-last . 0))
+     (eval add-hook 'before-save-hook #'cider-format-buffer)
+     (cider-clojure-cli-aliases . ":repl")
+     (cider-format-code-options
       ("indents"
        (("grpc-service"
          (("inner" 0))))))

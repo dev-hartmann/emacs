@@ -92,6 +92,21 @@
   (dashboard-setup-startup-hook))
 
 
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type 'visual)
+(setq screen-share nil)
+(require 'zoom-frm)
+(defun dh/toggle-screen-share ()
+  (interactive)
+  (if screen-share
+      (progn
+        (setq screen-share nil)
+        (zoom-frm-out)
+        (setq display-line-numbers-type 'relative))
+    (progn
+      (setq screen-share t)
+      (zoom-frm-in)
+      (setq display-line-numbers-type t)))
+  (revert-buffer-all)
+  (message (concat "screen sharing " (if screen-share "activated" "disabled"))))
 
 (provide 'ui)

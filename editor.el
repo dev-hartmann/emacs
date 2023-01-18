@@ -5,8 +5,7 @@
 ;;
 ;;; Code:
 (require 'use-package)
-
-(cua-mode 1)
+(require 'custom-functions)
 
 (use-package eldoc
   :hook (emacs-lisp-mode cider-mode))
@@ -43,19 +42,6 @@
 
 (use-package consult
   :demand t
-  :preface
-  (defun siren-consult-imenu ()
-    "Intelligently trigger consult-lsp-file-symbols or consult-imenu."
-    (interactive)
-    (if (and (fboundp 'consult-lsp-file-symbols)
-             (boundp 'lsp-mode)
-             lsp-mode)
-        ;; consult-lsp-file-symbols errors on some language servers, in such
-        ;; a case, fall back to consult-imenu.
-        (condition-case _
-            (consult-lsp-file-symbols)
-          ('error (consult-imenu)))
-      (consult-imenu)))
   :custom
   (consult-project-root-function #'dh/get-project-root)
   (completion-in-region-function #'consult-completion-in-region))
@@ -110,24 +96,6 @@
 
 (use-package undo-fu)
 
-(defun dh/create-vertical-window-and-projectile-find ()
-  (interactive)
-  (split-window-right)
-  (windmove-right)
-  (consult-projectile-find-file)
-  (balance-windows))
-
-(defun dh/close-window-and-balance ()
-  (interactive)
-  (delete-window)
-  (balance-windows))
-
-(defun dh/conditional-imenu ()
-  (interactive)
-  (if (lsp-session)
-      (lsp-ui-imenu)
-    (consult-imenu)))
-
 (use-package undo-tree
   :straight t
   :diminish undo-tree
@@ -136,13 +104,15 @@
   :config
   (global-undo-tree-mode))
 
-(defun dh/undo-tree-split-side-by-side (original-function &rest args)
-  "Split undo-tree side-by-side"
-  (let ((split-height-threshold nil)
-        (split-width-threshold 0))
-    (apply original-function args)))
-
 (advice-add 'undo-tree-visualize :around #'dh/undo-tree-split-side-by-side)
+
+(use-package zoom-frm)
+
+(transient-define-prefix transient-text-operations ()
+  "Text ops"
+  ["Zoom"
+   ("k" "in" zoom-in :transient t)
+   ("j" "out" zoom-out :transient t)])
 
 ;; EVIL mode and packages
 (use-package general
@@ -159,9 +129,10 @@
     :global-prefix "M-SPC")
 
   (general-define-key
-   :states 'motion
+   :states '(normal visual motion)
    "U"  '(undo-tree-visualize :wk "undo tree")
-   "g O" '(dh/conditional-imenu :wk "imenu"))
+   "g O" '(consult-imenu :wk "imenu")
+   "g Z" '(transient-text-operations :wk "zoom frame"))
 
   (dh/local-leader-keys
     :states 'normal
@@ -187,19 +158,25 @@
     "p b" '(consult-projectile-switch-to-buffer :which-key "switch (b)uffer")
     "p p" '(consult-projectile-switch-project :wk "switch (p)roject")
     "b"  '(:ignore t :which-key "(b)uffer")
-    "b b" '(consult-buffer :which-key "list buffer")
+    "b b" '(consult-project-buffer :which-key "list project buffers")
+    "b B" '(consult-buffer :which-key "list all buffers")
     "b k" '(kill-current-buffer :which-key "kill current buffer")
-    "b r" '(revert-buffer :which-key "revert current buffer")
-    "g"   '(:ignore t :which-key "Git")
+    "b r" '(revert-buffer :which-key "(r)evert current buffer")
+    "b R" '(revert-buffer-all :which-key "(r)evert all buffers")
+    "b p" '(evil-prev-buffer :which-key "(p)revious buffer")
+    "b n" '(evil-next-buffer :which-key "(n)ext buffer")
+    "g"   '(:ignore t :which-key "(g)it")
     "g g" '(magit-status :which-key "(g)it status")
     "g b" '(magit-blame :which-key "git (b)lame in file")
     "g d" '(magit-diff :which-key "git (d)iff")
-    "t"  '(:ignore t :which-key "(t)oggle")
-    "t d"  '(toggle-debug-on-error :which-key "debug on error")
+    "t"   '(:ignore t :which-key "(t)oggle")
+    "t d" '(toggle-debug-on-error :which-key "debug on error")
     "t l" '(display-line-numbers-mode :wk "line numbers")
     "t t" '(treemacs :which-key "treemacs")
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
-    "h" '(:ignore t :which-key "describe")
+    "t n" '((lambda () (interactive) (setq display-line-numbers-type t)) :wk "standard line numbers")
+    "t N" '((lambda () (interactive) (setq display-line-numbers-type 'relative)) :wk "relative line numbers")
+    "h"   '(:ignore t :which-key "describe")
     "h e" 'view-echo-area-messages
     "h f" 'describe-function
     "h F" 'describe-face
@@ -217,8 +194,7 @@
     "w c" '(dh/close-window-and-balance :wk "(c)lose current window")
     "w =" '(balance-windows :wk "balance windows")
     "x"   '(:ignore t :which-key "te(x)t")
-    "x +" '(text-scale-increase :wk "+ font")
-    "x -" '(text-scale-decrease :wk "- font")
+    "x z" '(transient-text-operations :which-key "zoom text")
     "o"   '(:ignore t :which-key "Open")
     "q"   '(:ignore t :which-key "Quit")
     "q q"  '(kill-emacs :which-key "quit emacs")
@@ -339,9 +315,6 @@
 (use-package lsp-ui
   :hook
   ((lsp-mode . lsp-ui-mode))
-  ;; :bind
-  ;; (:map lsp-ui-mode-map
-  ;;       ([remap lsp-find-references] . lsp-ui-peek-find-references))
   :general (dh/local-leader-keys
              "h" 'lsp-ui-doc-show
              "H" 'lsp-ui-doc-hide)
@@ -357,7 +330,8 @@
   (setq lsp-ui-doc-show-with-cursor nil)
   (setq lsp-ui-doc-show-with-mouse nil)
   (setq lsp-ui-peek-always-show t)
-  (setq lsp-ui-peek-fontify 'always))
+  (setq lsp-ui-peek-fontify 'always)
+  (setq lsp-file-watch-ignored-directories (append lsp-file-watch-ignored-directories (list ".*/\.cache/.*"))))
 
 (use-package dap-mode
   :after lsp-mode
@@ -365,7 +339,7 @@
   (dap-auto-configure-features '(sessions locals controls tooltip))
   :config (dap-auto-configure-mode))
 
-;; VC and Git
+                                        ;VC and Git
 (use-package magit
   :bind ("C-x g" . magit-status)
   :config (add-hook 'with-editor-mode-hook #'evil-insert-state))
@@ -395,8 +369,8 @@
 ;; Completion frontend
 (use-package company
   :diminish company-mode
-  :hook ((prog-mode . company-mode)
-         (lsp-mode . company-mode))
+  :hook  ((prog-mode . company-mode)
+          (lsp-mode . company-mode))
   :config
   (setq company-idle-delay 0
         company-minimum-prefix-length 1)
@@ -435,6 +409,8 @@
 
 (use-package kubernetes-helm
   :after kubernetes)
+
+(use-package revert-buffer-all)
 
 (use-package sql)
 
