@@ -117,7 +117,7 @@
 
 ;; stop emacs from littering the file system with backup files
 (setq make-backup-files nil
-      auto-save-default nil
+      auto-save-default t
       create-lockfiles nil)
 
 (when (not (file-directory-p (expand-file-name "backups" user-emacs-directory)))

@@ -26,3 +26,4 @@
     (hack-dir-local-variables-non-file-buffer)))
 
 (provide 'custom-functions)
+ 

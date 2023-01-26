@@ -308,9 +308,9 @@
   (setq lsp-modeline-diagnostics-enable t)
   (setq lsp-keep-workspace-alive nil)
   (setq lsp-auto-execute-action nil)
-  (setq lsp-before-save-edits nil)
+  (setq lsp-before-save-edits t)
   (setq lsp-headerline-breadcrumb-enable nil)
-  (setq lsp-diagnostics-provider :none))
+  (setq lsp-file-watch-ignored-directories (append lsp-file-watch-ignored-directories (list ".*/\.cache/.*"))))
 
 (use-package lsp-ui
   :hook
@@ -327,8 +327,8 @@
    "C-j" 'nil
    "C-k" 'nil)
   :init
-  (setq lsp-ui-doc-show-with-cursor nil)
-  (setq lsp-ui-doc-show-with-mouse nil)
+  (setq lsp-ui-doc-show-with-cursor t)
+  (setq lsp-ui-doc-show-with-mouse t)
   (setq lsp-ui-peek-always-show t)
   (setq lsp-ui-peek-fontify 'always)
   (setq lsp-file-watch-ignored-directories (append lsp-file-watch-ignored-directories (list ".*/\.cache/.*"))))

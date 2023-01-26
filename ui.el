@@ -92,21 +92,74 @@
   (dashboard-setup-startup-hook))
 
 
+
 (setq display-line-numbers-type 'visual)
-(setq screen-share nil)
+
 (require 'zoom-frm)
-(defun dh/toggle-screen-share ()
-  (interactive)
-  (if screen-share
+
+(defvar screen-share nil)
+
+(defun add-val-to-global-mode-string (str)
+  (setq global-mode-string
+        (cond ((consp global-mode-string)
+               (add-to-list 'global-mode-string str 'APPEND))
+              ((not global-mode-string)
+               (list str))
+              ((stringp global-mode-string)
+               (list global-mode-string str)))))
+
+(defun add-to-global-mode-string (val)
+  (if (listp val)
+      (dolist (e val)
+        (add-val-to-global-mode-string e))
+    (add-val-to-global-mode-string val)))
+
+(defun remove-from-global-mode-string (str)
+  (add-to-global-mode-string (remove-from-list-by-substring str global-mode-string)))
+
+(defun reset-global-mode-string ()
+  (setq global-mode-string ""))
+
+(defun remove-from-list-by-substring (substring list)
+  (let ((matching-items (cl-remove-if-not (lambda (item) (string-match-p substring item)) list)))
+    (dolist (item matching-items)
+      (setq list (delete item list)))
+    list))
+
+(defun update-timer (start-time end-time)
+  (let ((time-left (time-subtract end-time (current-time))))
+    (if (time-less-p time-left '(0 0 0))
+        (progn
+          (cancel-function-timers 'update-timer)
+          (add-to-global-mode-string (remove-from-list-by-substring "Time left:" global-mode-string))
+          (add-to-global-mode-string "Time's up!"))
       (progn
-        (setq screen-share nil)
-        (zoom-frm-out)
-        (setq display-line-numbers-type 'relative))
-    (progn
-      (setq screen-share t)
-      (zoom-frm-in)
-      (setq display-line-numbers-type t)))
-  (revert-buffer-all)
-  (message (concat "screen sharing " (if screen-share "activated" "disabled"))))
+        (add-to-global-mode-string (remove-from-list-by-substring "Time left:" global-mode-string))
+        (add-to-global-mode-string (format "Time left: %d:%02d" (nth 1 time-left) (nth 0 time-left)))))))
+
+(defun countdown-timer (minutes)
+  (run-at-time "1 sec" 1 'update-timer (round (float-time)) (+ (round (float-time)) (* 60 minutes)))
+  (message "Timer started for %d minutes" minutes))
+
+(defun dh/toggle-screen-share (&optional minutes)
+  (interactive "p")
+  (setq frame-zoom-font-difference 3)
+  (let ((str  (list " 🔥 " ))
+        (mins (or minutes 30)))
+    (if screen-share
+        (progn
+          (setq screen-share nil)
+          (zoom-frm-out)
+          (setq display-line-numbers-type 'relative)
+          (reset-global-mode-string)
+          (cancel-function-timers 'update-timer))
+      (progn
+        (setq screen-share t)
+        (zoom-frm-in)
+        (setq display-line-numbers-type t)
+        (add-to-global-mode-string str)
+        (countdown-timer mins))
+      (revert-buffer-all)
+      (message (concat "screen sharing: " (if screen-share "activated" "disabled"))))))
 
 (provide 'ui)
