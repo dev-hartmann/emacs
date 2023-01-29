@@ -162,4 +162,16 @@
       (revert-buffer-all)
       (message (concat "screen sharing: " (if screen-share "activated" "disabled"))))))
 
+
+(defun mob-status ()
+  "Show the current status of the mob session in a buffer named `*mob-status*`."
+  (interactive)
+  (let ((buffer (get-buffer-create "*mob-status*")))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (call-process "mob" nil t nil "status")
+      (goto-char (point-min)))
+    (pop-to-buffer buffer)))
+
+
 (provide 'ui)

@@ -2,14 +2,11 @@
   "Tests if the `mob` command is available."
   (eq 0 (call-process "which" nil nil nil "mob")))
 
-(defun mob (&optional minutes)
-  "Start a new mob session.
-  MINUTES is the optional parameter for the mob start timer"
-  (interactive "P")
-  (if (not (mob-available-p))
-      (message "mob.sh is not available, please install it first.")
-    (let ((default-directory (mob-default-directory)))
-      (async-shell-command (concat "mob " (if minutes (concat "-t " (number-to-string minutes) " "))  (read-string "Enter mob session name: "))))))
+(defun mob-handle-error (err output)
+  (with-current-buffer (get-buffer-create "*mob-error*")
+    (erase-buffer)
+    (insert (if err (error-message-string err) output))
+    (pop-to-buffer (current-buffer))))
 
 (defun mob-start (&optional minutes)
   "Start a new mob session with optional timer of MINUTES."
@@ -17,16 +14,12 @@
   (let ((default-directory (or (and (fboundp 'projectile-project-root) (projectile-project-root))
                                (and buffer-file-name (file-name-directory buffer-file-name))
                                default-directory)))
-    (if (and (executable-find "git") (locate-dominating-file default-directory ".git"))
-        (if (executable-find "mob")
-            (progn
-              (setq mob-default-directory default-directory)
-              (if (null minutes)
-                  (call-process "mob" nil nil nil "start")
-                (call-process "mob" nil nil nil "start" (number-to-string minutes))))
-          (message "mob.sh not found. Please install mob.sh and make sure it's in your PATH."))
-      (message "Not a git repository. Please make sure you are inside a git repository."))))
-
+    (if (locate-dominating-file default-directory ".git")
+        (condition-case err
+            (let ((output (shell-command-to-string (concat "mob start " (if minutes (number-to-string minutes))))))
+              (unless (string-match-p "> It's now.*Happy collaborating! :)" output)
+                (mob-handle-error nil output))))
+      (mob-handle-error nil "Not a git project"))))
 
 
 (defun highlight-current-line ()
