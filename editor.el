@@ -43,7 +43,6 @@
 (use-package consult
   :demand t
   :custom
-  (consult-project-root-function #'dh/get-project-root)
   (completion-in-region-function #'consult-completion-in-region))
 
 (use-package vertico
@@ -106,6 +105,8 @@
 
 (advice-add 'undo-tree-visualize :around #'dh/undo-tree-split-side-by-side)
 
+(use-package transient)
+
 (use-package zoom-frm)
 
 (transient-define-prefix transient-text-operations ()
@@ -132,7 +133,8 @@
    :states '(normal visual motion)
    "U"  '(undo-tree-visualize :wk "undo tree")
    "g O" '(consult-imenu :wk "imenu")
-   "g Z" '(transient-text-operations :wk "zoom frame"))
+   "g Z" '(transient-text-operations :wk "zoom frame")
+   "g r" '(lsp-ui-peek-find-references :w "find references"))
 
   (dh/local-leader-keys
     :states 'normal
@@ -195,6 +197,9 @@
     "w =" '(balance-windows :wk "balance windows")
     "x"   '(:ignore t :which-key "te(x)t")
     "x z" '(transient-text-operations :which-key "zoom text")
+    "x p" '(:ignore t :wk "profiler")
+    "x p s" '(profiler-start :which-key "profiler start")
+    "x p S" '(transient-text-operations :which-key "profiler stop")
     "o"   '(:ignore t :which-key "Open")
     "q"   '(:ignore t :which-key "Quit")
     "q q"  '(kill-emacs :which-key "quit emacs")
@@ -265,16 +270,6 @@
 (use-package evil-cleverparens
   :after (evil smartparens))
 
-(use-package aggressive-indent
-  :diminish aggressive-indent-mode
-  :hook ((clojurex-mode
-          clojurescript-mode
-          clojurec-mode
-          clojure-mode
-          emacs-lisp-mode
-          lisp-data-mode)
-         . aggressive-indent-mode))
-
 (use-package rainbow-delimiters
   :hook ((cider-repl-mode
           clojurex-mode
@@ -286,60 +281,6 @@
           inferior-emacs-lisp-mode)
          . rainbow-delimiters-mode))
 
-(use-package lsp-mode
-  :commands
-  (lsp lsp-deferred)
-  :hook
-  ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
-   (lsp-mode . lsp-enable-which-key-integration))
-  :general
-  (dh/leader-keys
-    :states 'normal
-    :keymaps 'lsp-mode-map
-    "c" '(:ignore t :which-key "code")
-    "c l" '(:keymap lsp-command-map :wk "lsp")
-    "c a" '(lsp-execute-code-action :wk "code action")
-    "c r" '(lsp-rename :wk "rename"))
-  :init
-  (setq lsp-restart 'ignore)
-  (setq lsp-eldoc-enable-hover t)
-  (setq lsp-enable-file-watchers nil)
-  (setq lsp-signature-auto-activate nil)
-  (setq lsp-modeline-diagnostics-enable t)
-  (setq lsp-keep-workspace-alive nil)
-  (setq lsp-auto-execute-action nil)
-  (setq lsp-before-save-edits t)
-  (setq lsp-headerline-breadcrumb-enable nil)
-  (setq lsp-file-watch-ignored-directories (append lsp-file-watch-ignored-directories (list ".*/\.cache/.*"))))
-
-(use-package lsp-ui
-  :hook
-  ((lsp-mode . lsp-ui-mode))
-  :general (dh/local-leader-keys
-             "h" 'lsp-ui-doc-show
-             "H" 'lsp-ui-doc-hide)
-  (lsp-ui-peek-mode-map
-   :states 'normal
-   "C-j" 'lsp-ui-peek--select-next
-   "C-k" 'lsp-ui-peek--select-prev)
-  (outline-mode-map
-   :states 'normal
-   "C-j" 'nil
-   "C-k" 'nil)
-  :init
-  (setq lsp-ui-doc-show-with-cursor t)
-  (setq lsp-ui-doc-show-with-mouse t)
-  (setq lsp-ui-peek-always-show t)
-  (setq lsp-ui-peek-fontify 'always)
-  (setq lsp-file-watch-ignored-directories (append lsp-file-watch-ignored-directories (list ".*/\.cache/.*"))))
-
-(use-package dap-mode
-  :after lsp-mode
-  :custom
-  (dap-auto-configure-features '(sessions locals controls tooltip))
-  :config (dap-auto-configure-mode))
-
-                                        ;VC and Git
 (use-package magit
   :bind ("C-x g" . magit-status)
   :config (add-hook 'with-editor-mode-hook #'evil-insert-state))
@@ -351,6 +292,51 @@
   :after magit
   :config
   (magit-todos-mode))
+
+(use-package lsp-mode
+  :commands
+  (lsp lsp-deferred)
+  :hook
+  ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
+   (lsp-mode . lsp-enable-which-key-integration))
+  :general
+  (general-define-key
+    :states 'normal
+    "g l" '(:ignore t :which-key "code")
+    "g l l" '(:keymap lsp-command-map :wk "lsp")
+    "g l a" '(lsp-execute-code-action :wk "code action")
+    "g l r" '(lsp-rename :wk "rename"))
+  :init
+  (setq lsp-restart 'ignore)
+  (setq lsp-eldoc-enable-hover t)
+  (setq lsp-enable-file-watchers nil)
+  (setq lsp-signature-auto-activate nil)
+  (setq lsp-modeline-diagnostics-enable t)
+  (setq lsp-keep-workspace-alive nil)
+  (setq lsp-auto-execute-action nil)
+  (setq lsp-before-save-edits t)
+  (setq lsp-headerline-breadcrumb-enable nil))
+
+(use-package lsp-ui
+  :hook
+  (lsp-mode . lsp-ui-mode)
+  :general
+  (general-define-key
+     :states '(normal visual motion)
+     "g R" '(lsp-ui-peek-find-references :wk "find references"))
+  :init
+  (setq lsp-ui-doc-show-with-cursor t)
+  (setq lsp-ui-doc-show-with-mouse t)
+  (setq lsp-ui-peek-always-show t)
+  (setq lsp-ui-peek-fontify 'always))
+
+(use-package dap-mode
+  :after lsp-mode
+  :custom
+  (dap-auto-configure-features '(sessions locals controls tooltip))
+  :config (dap-auto-configure-mode))
+
+                                        ;VC and Git
 
 ;; Snippets
 (use-package yasnippet

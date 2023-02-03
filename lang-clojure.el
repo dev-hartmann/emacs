@@ -52,6 +52,7 @@
     "e" '(nil :which-key "(e)val")
     "e b" '(cider-eval-buffer :which-key "eval (b)uffer")
     "e e" '(cider-eval-last-sexp :which-key "eval last s(e)xp")
+    "e d" '(cider-eval-defun-at-point :wk "eval (d)efun at point")
     "e r" '(cider-eval-list-at-point :which-key "eval oute(r)most sexp")
     "t"   '(:ignore t :wk "(t)est")
     "t t" '(cider-test-run-test :wk "run (t)est at point")
@@ -64,11 +65,12 @@
     "c c" '(clj-cycle-coll-transient :wk "cycle (c)ollection type for thing at point")
     "c e" '(:ignore t :wk "(e)xtract")
     "c e d" '(cljr-extract-def :wk "extract (d)ef")
-    "c e f" '(cljr-extract-function :wk "extract (f ")
+    "c e f" '(cljr-extract-function :wk "extract (f)unction")
     "r"   '(:ignore t :wk "(r)epl")
     "r q" '(cider-quit :wk "(q)uit cider")
     "r Q" '(corgi/cider-quit-all :wk "(Q)uit all cider repls")
     "r r" '(cider-restart :wk "(r)estart cider")
+    "r c" '(cider-find-and-clear-repl-output   :wk "(c)lear repl buffer")
     "r n" '(cider-repl-set-ns :wk "set repl to current (n)amespace")
     "r i" '(cider-interrupt :wk "(i)nterupt repl evaluation")))
 
@@ -77,11 +79,7 @@
   :diminish clj-refactor-mode
   :config
   (setq cljr-warn-on-eval nil
-        cljr-eagerly-build-asts-on-startup nil)
-  :general
-  (general-define-key
-   :states '(normal visual motion)
-   "g R" '(cljr-find-usages :wk "find (R)eferences")))
+        cljr-eagerly-build-asts-on-startup nil))
 
 (defadvice cider-find-var (before add-evil-jump activate)
   (evil-set-jump))
@@ -91,11 +89,11 @@
   (dh/local-leader-keys
     :states  '(normal visual)
     :keymaps 'clojure-mode-map
-    "k" '(:ignore t :wk "kaocha tests")
-    "k t" '(kaocha-runner-run-test-at-point :wk "run (t)est at point")
-    "k s" '(cider-test-rerun-tests :wk "(s)how warnings from test/s")
-    "k n" '(kaocha-runner-run-tests :wk "run (n)amespace tests")
-    "k p" '(kaocha-runner-run-all-tests :wk "run all (p)roject tests")))
+    "t k" '(:ignore t :wk "kaocha tests")
+    "t k t" '(kaocha-runner-run-test-at-point :wk "run (t)est at point")
+    "t k s" '(cider-test-rerun-tests :wk "(s)how warnings from test/s")
+    "t k n" '(kaocha-runner-run-tests :wk "run (n)amespace tests")
+    "t k p" '(kaocha-runner-run-all-tests :wk "run all (p)roject tests")))
 
 (use-package clj-ns-name
   :config

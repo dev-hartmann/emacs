@@ -1,3 +1,5 @@
+(require 'transient)
+
 (defun mob-available-p ()
   "Tests if the `mob` command is available."
   (eq 0 (call-process "which" nil nil nil "mob")))
@@ -41,3 +43,9 @@
         (evil-local-set-key 'normal (kbd "q") #'kill-buffer-and-window)))
     (pop-to-buffer buffer)
     (highlight-current-line)))
+
+(transient-define-prefix mob-sh-transient ()
+  "Prefix with interactive user input."
+  ["Mob.sh interactive mode"
+   ("s" "mob start" mob-start)
+   ("g" "mob status" mob-status)])

@@ -92,9 +92,6 @@
   (dashboard-setup-startup-hook))
 
 
-
-(setq display-line-numbers-type 'visual)
-
 (require 'zoom-frm)
 
 (defvar screen-share nil)

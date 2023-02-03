@@ -27,8 +27,6 @@
   (when (memq window-system '(mac ns x pgtk))
     (exec-path-from-shell-initialize)))
 
-(setq use-package-compute-statistics t)
-
 ;; Handle emacs garbage collection for me
 (use-package gcmh
   :demand
@@ -37,30 +35,16 @@
 
 ;; keep .emacs.d/ clean
 (use-package no-littering
-  :demand
   :config
   (with-eval-after-load 'recentf
     (add-to-list 'recentf-exclude no-littering-var-directory)
     (add-to-list 'recentf-exclude no-littering-etc-directory)))
 
-;; Language-specific packages
-(use-package org
-  :hook ((org-mode . visual-line-mode)
-         (org-mode . org-indent-mode)))
-
-(use-package org-bullets :hook (org-mode . org-bullets-mode))
 
 (use-package markdown-mode
   :hook (markdown-mode . visual-line-mode))
 
 (use-package yaml-mode)
-
-(server-start)
-
-;; Enable transparent titlebar
-(use-package ns-auto-titlebar
-  :config
-  (ns-auto-titlebar-mode))
 
 ;; Enable use of macOS trash
 (use-package osx-trash
