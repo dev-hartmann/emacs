@@ -163,6 +163,7 @@
   (setq mac-option-key-is-meta t)
   (setq mac-option-modifier 'meta)
   (setq mac-right-option-modifier nil)
+(setq mac-left-command-modifier 'meta)
   (global-set-key (kbd "s-s") 'save-buffer)             ;; save
   (global-set-key (kbd "s-S") 'write-file)              ;; save as
   (global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ;; quit
@@ -170,5 +171,4 @@
   (global-set-key (kbd "s-v") 'yank) ;; quit
   (global-set-key (kbd "s-c") 'kill-ring-save);; quit
   (global-set-key (kbd "s-x") 'kill-region))
-
 (provide 'defaults)

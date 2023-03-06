@@ -81,6 +81,16 @@
   :hook
   (embark-collect-mode . embark-consult-preview-minor-mode))
 
+(require 'thingatpt)
+(defun dh/search-thing-at-point-in-project ()
+  (interactive)
+  (let ((project-root (projectile-project-root)))
+    (when project-root
+      (consult-ripgrep project-root (thing-at-point 'symbol)))))
+
+(defun dh/search-thing-at-point ()
+  (interactive)
+  (consult-line (thing-at-point 'symbol)))
 (use-package treemacs
   :config
   (setq treemacs-follow-after-init t)
@@ -126,7 +136,7 @@
 
   (general-create-definer dh/local-leader-keys
     :keymaps '(normal insert visual emacs)
-    :prefix "SPC m"
+    :prefix ","
     :global-prefix "M-SPC")
 
   (general-define-key
@@ -150,8 +160,8 @@
     "f"  '(:ignore t :which-key "(f)iles")
     "ff" '(find-file :which-key "find file")
     "s"  '(:ignore t :which-key "(s)earch")
-    "s s" '(consult-line :which-key "search in file")
-    "s p" '(consult-ripgrep :which-key "search in project (ripgrep)")
+    "s s" '(dh/search-thing-at-point :which-key "search in file")
+    "s p" '(dh/search-thing-at-point-in-project :which-key "search in project (ripgrep)")
     "p"  '(:ignore t :which-key "(p)roject")
     "p f" '(consult-projectile-find-file :which-key "find (f)ile")
     "p d" '(consult-projectile-find-dir :which-key "find (d)ir")
@@ -256,7 +266,6 @@
   :diminish
   :config (evil-commentary-mode +1))
 
-
 (use-package winum
   :config (winum-mode 1))
 
@@ -280,6 +289,11 @@
           lisp-data-mode
           inferior-emacs-lisp-mode)
          . rainbow-delimiters-mode))
+
+(use-package super-save
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t))
 
 (use-package magit
   :bind ("C-x g" . magit-status)
@@ -336,8 +350,7 @@
   (dap-auto-configure-features '(sessions locals controls tooltip))
   :config (dap-auto-configure-mode))
 
-                                        ;VC and Git
-
+;; VC and Git
 ;; Snippets
 (use-package yasnippet
   :straight t
@@ -406,3 +419,19 @@
   :init
   (setq sqlformat-command 'pgformatter
         sqlformat-args '("-s2" "-g" "-u1")))
+
+(defun mob-status ()
+  "Show the current status of the mob session in a buffer named `*mob-status*`."
+  (interactive)
+  (let ((buffer (get-buffer-create "*mob-status*")))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (insert (concat "Current branch: " (car (split-string (shell-command-to-string "mob branch") "\n"))))
+      (newline)
+      (call-process "mob" nil t nil "status")
+      (goto-char (point-min))
+      (local-set-key (kbd "q") #'kill-buffer-and-window)
+      (when (fboundp 'evil-local-set-key)
+        (evil-local-set-key 'normal (kbd "q") #'kill-buffer-and-window)))
+    (pop-to-buffer buffer)
+    (highlight-current-line)))

@@ -6,23 +6,11 @@
 (load-file (expand-file-name "editor.el" user-emacs-directory))
 (load-file (expand-file-name "ui.el" user-emacs-directory))
 (load-file (expand-file-name "lang-clojure.el" user-emacs-directory))
+(load-file (expand-file-name "lang-go.el" user-emacs-directory))
+(load-file (expand-file-name "elixir-lang.el" user-emacs-directory))
 ;; (load-file (expand-file-name "org.el" user-emacs-directory))
 
 (use-package exec-path-from-shell
-  :custom
-  (exec-path-from-shell-variables '("PATH"
-                                    "MANPATH"
-                                    "TMPDIR"
-                                    "KUBECONFIG"
-                                    "GOPATH"
-                                    "GOBIN"
-                                    "GOROOT"
-                                    "GOPRIVATE"
-                                    "GOENV_GOPATH_PREFIX"
-                                    "GOENV_VERSION"))
-  (exec-path-from-shell-arguments '("-l"))
-  (exec-path-from-shell-check-startup-files nil)
-  (exec-path-from-shell-debug nil)
   :config
   (when (memq window-system '(mac ns x pgtk))
     (exec-path-from-shell-initialize)))
@@ -65,9 +53,13 @@
  ;; If there is more than one, they won't work right.
  '(company-show-quick-access t nil nil "Customized with use-package company")
  '(custom-safe-themes
-   '("60ada0ff6b91687f1a04cc17ad04119e59a7542644c7c59fc135909499400ab8" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "00cec71d41047ebabeb310a325c365d5bc4b7fab0a681a2a108d32fb161b4006" "7e068da4ba88162324d9773ec066d93c447c76e9f4ae711ddd0c5d3863489c52" "545ab1a535c913c9214fe5b883046f02982c508815612234140240c129682a68" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" "7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8" "e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" "c865644bfc16c7a43e847828139b74d1117a6077a845d16e71da38c8413a5aaa" default))
+   '("944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" "60ada0ff6b91687f1a04cc17ad04119e59a7542644c7c59fc135909499400ab8" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "00cec71d41047ebabeb310a325c365d5bc4b7fab0a681a2a108d32fb161b4006" "7e068da4ba88162324d9773ec066d93c447c76e9f4ae711ddd0c5d3863489c52" "545ab1a535c913c9214fe5b883046f02982c508815612234140240c129682a68" "02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" "7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8" "e3daa8f18440301f3e54f2093fe15f4fe951986a8628e98dcd781efbec7a46f2" "c865644bfc16c7a43e847828139b74d1117a6077a845d16e71da38c8413a5aaa" default))
  '(safe-local-variable-values
-   '((elisp-lint-indent-specs
+   '((eglot-workspace-configuration
+      (:gopls :directoryFilters
+              ["-bazel-bin" "-bazel-out" "-bazel-testlogs" "-bazel-core"]
+              :gofumpt t :usePlaceholders t :allowModfileModifications t))
+     (elisp-lint-indent-specs
       (if-let* . 2)
       (when-let* . 1)
       (let* . defun)
