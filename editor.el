@@ -157,6 +157,7 @@
 
   (dh/leader-keys
     "SPC"'(execute-extended-command :wk "execute extended cmd")
+    "u"  '(universal-argument :wk "universal argument")
     "f"  '(:ignore t :which-key "(f)iles")
     "ff" '(find-file :which-key "find file")
     "s"  '(:ignore t :which-key "(s)earch")
@@ -215,6 +216,8 @@
     "q q"  '(kill-emacs :which-key "quit emacs")
     "q Q"  '(save-buffers-kill-emacs :which-key "save all buffers and quit emacs")))
 
+;; unset C-u since we have bound it to SPC-u
+(global-unset-key (kbd "C-u"))
 (use-package evil
   :init
   (setq evil-want-C-u-scroll t)
@@ -406,7 +409,7 @@
 
 (use-package kubernetes)
 
-(use-package kubernetes-helm
+(use-package kubernetes-evil
   :after kubernetes)
 
 (use-package revert-buffer-all)
