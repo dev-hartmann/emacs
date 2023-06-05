@@ -22,6 +22,7 @@
 (add-hook 'clojurescript-mode-hook 'lsp-deferred)
 (add-hook 'clojurec-mode-hook 'lsp-deferred)
 (add-hook 'clojure-mode-hook #'evil-cleverparens-mode)
+(add-hook 'clojure-mode-hook #'evil-smartparens-mode)
 
 (transient-define-prefix clj-cycle-coll-transient ()
   "Text ops"
@@ -30,7 +31,8 @@
    ("(" "list" clojure-convert-collection-to-list :transient t)
    ("{" "map" clojure-convert-collection-to-map :transient t)
    ("#" "set" clojure-convert-collection-to-set :transient t)
-   ("'" "quoted list" clojure-convert-collection-to-quoted-list :transient t)])
+   ("'" "quoted list" clojure-convert-collection-to-quoted-list :transient t)
+   ("q") "quit" nil])
 
 (use-package cider
   :diminish cider-mode
@@ -56,6 +58,7 @@
     "e r" '(cider-eval-list-at-point :which-key "eval oute(r)most sexp")
     "t"   '(:ignore t :wk "(t)est")
     "t t" '(cider-test-run-test :wk "run (t)est at point")
+    "t l" '(cider-test-rerun-test :wk "re-run (l)ast test")
     "t f" '(cider-test-rerun-failed-tests :wk "re-run (f)ailed tests")
     "t r" '(cider-test-rerun-tests :wk "(r)e-run tests")
     "t n" '(cider-test-run-ns-tests :wk "run (n)amespace tests")

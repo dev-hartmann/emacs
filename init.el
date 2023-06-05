@@ -3,6 +3,7 @@
 (load-file (expand-file-name "bootstrap.el" user-emacs-directory))
 (load-file (expand-file-name "defaults.el" user-emacs-directory))
 (load-file (expand-file-name "custom-functions.el" user-emacs-directory))
+(load-file (expand-file-name "vim.el" user-emacs-directory))
 (load-file (expand-file-name "editor.el" user-emacs-directory))
 (load-file (expand-file-name "ui.el" user-emacs-directory))
 (load-file (expand-file-name "lang-clojure.el" user-emacs-directory))
