@@ -1,9 +1,4 @@
-(use-package go-mode
- :general
- (general-define-key
-   :states '(normal visual motion)
-   :keymaps evil-collection-go-mode-maps
-    "g d" '(lsp-find-definition :wk "goto definition")))
+(use-package go-mode)
 
 (defun lsp-go-install-save-hooks ()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
