@@ -360,3 +360,5 @@
         sqlformat-args '("-s2" "-g" "-u1")))
 
 (use-package shell-pop)
+
+(use-package nix-mode)
