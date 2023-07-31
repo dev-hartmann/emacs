@@ -1,51 +1,63 @@
-(require 'transient)
+;;(require transient)
 
-(defun mob-available-p ()
-  "Tests if the `mob` command is available."
-  (eq 0 (call-process "which" nil nil nil "mob")))
+(transient-define-prefix mob ()
+  "Wrapper around the mob.sh command line tool."
+  ["Base commands"
+   ("s" "start" mob-start "Start a mob session")   ("n" "next" mob-next "Pass the keyboard to the next person")
+   ("e" "end" mob-end "End the current mob session")
+   ("c" "clean" mob-clean "removes local and remote wip branch")
+   ("r" "reset" mob-reset "Removes all orphan wip branches")]
+  ["Timer commands"
+   ("s" "start" mob-start "Start a mob session")
+   ("o" "next" mob-next "Pass the keyboard to the next person")
+   ("b" "end" mob-end "End the current mob session")]
+  ["Options"
+   ("-t" "time" mob-set-time "Set the session time (in minutes)" :type 'numeric)])
 
-(defun mob-handle-error (err output)
-  (with-current-buffer (get-buffer-create "*mob-error*")
-    (erase-buffer)
-    (insert (if err (error-message-string err) output))
-    (pop-to-buffer (current-buffer))))
+(defvar mob-time nil
+  "The length of the mob session in minutes.")
 
-(defun mob-start (&optional minutes)
-  "Start a new mob session with optional timer of MINUTES."
-  (interactive "p")
-  (let ((default-directory (or (and (fboundp 'projectile-project-root) (projectile-project-root))
-                               (and buffer-file-name (file-name-directory buffer-file-name))
-                               default-directory)))
-    (if (locate-dominating-file default-directory ".git")
-        (condition-case err
-            (let ((output (shell-command-to-string (concat "mob start " (if minutes (number-to-string minutes))))))
-              (unless (string-match-p "> It's now.*Happy collaborating! :)" output)
-                (mob-handle-error nil output))))
-      (mob-handle-error nil "Not a git project"))))
+(defvar mob-output-buffer-name "*mob output*"
+  "Name of buffer used to display mob output.")
 
+(defun mob-start ()
+  "Start a new mob session."
+  (interactive)
+  (setq mob-action "start")
+  (mob-set-time (read-from-minibuffer "Time (in minutes): ")))
 
-(defun highlight-current-line ()
-  "Highlight the current line."
-  (hl-line-mode 1))
+(defun mob-next ()
+  "Pass the keyboard to the next person."
+  (interactive)
+  (setq mob-action "next")
+  (mob-run))
+
+(defun mob-end ()
+  "End the current mob session."
+  (interactive)
+  (setq mob-action "end")
+  (mob-run))
 
 (defun mob-status ()
-  "Show the current status of the mob session in a buffer named `*mob-status*`."
+  "Show the current mob status."
   (interactive)
-  (let ((buffer (get-buffer-create "*mob-status*")))
-    (with-current-buffer buffer
-      (erase-buffer)
-      (insert (concat "Current branch: " (car (split-string (shell-command-to-string "mob branch") "\n"))))
-      (newline)
-      (call-process "mob" nil t nil "status")
-      (goto-char (point-min))
-      (local-set-key (kbd "q") #'kill-buffer-and-window)
-      (when (fboundp 'evil-local-set-key)
-        (evil-local-set-key 'normal (kbd "q") #'kill-buffer-and-window)))
-    (pop-to-buffer buffer)
-    (highlight-current-line)))
+  (setq mob-action "status")
+  (mob-run))
 
-(transient-define-prefix mob-sh-transient ()
-  "Prefix with interactive user input."
-  ["Mob.sh interactive mode"
-   ("s" "mob start" mob-start)
-   ("g" "mob status" mob-status)])
+(defun mob-run ()
+  "Run the mob command with the current action and time settings."
+  (interactive)
+  (let* ((mob-cmd (concat "mob.sh "
+                          (mapconcat #'shell-quote-argument
+                                     (list
+                                      (concat "--time=" (number-to-string (string-to-number mob-time)))
+                                      mob-action)
+                                     " ")))
+         (mob-output-buffer (get-buffer-create mob-output-buffer-name)))
+    (with-current-buffer mob-output-buffer
+      (setq-local mode-line-format nil)
+      (erase-buffer))
+    (async-shell-command mob-cmd mob-output-buffer)
+    (display-buffer-in-side-window mob-output-buffer '((side . bottom) (slot . -1)))
+    (with-current-buffer mob-output-buffer
+      (goto-char (point-max)))))

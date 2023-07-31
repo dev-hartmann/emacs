@@ -21,7 +21,6 @@
 ;; when gccemacs is installed.
 (setq comp-deferred-compilation nil)
 
-
 (add-hook 'emacs-startup-hook
           (lambda ()
             (setq gc-cons-threshold 33554432 ; 32mb

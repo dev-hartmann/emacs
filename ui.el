@@ -1,6 +1,8 @@
 (use-package all-the-icons)
 
-  (use-package doom-themes
+(set-frame-font "Fira Code 12" nil t)
+
+(use-package doom-themes
     :ensure t
     :config
     ;; Global settings (defaults)
@@ -169,6 +171,8 @@
       (call-process "mob" nil t nil "status")
       (goto-char (point-min)))
     (pop-to-buffer buffer)))
+
+(use-package focus)
 
 
 (provide 'ui)

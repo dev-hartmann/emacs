@@ -15,6 +15,8 @@
 
 (setq straight-use-package-by-default t)
 
+(setq straight-repository-branch "develop")
+
 (when (not (file-exists-p (expand-file-name "straight/versions/default.el" straight-base-dir)))
   (straight-freeze-versions))
 

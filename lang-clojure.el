@@ -113,6 +113,11 @@
   (cider-nrepl-sync-request:eval
    "(do (ns dev) (def portal ((requiring-resolve 'portal.api/open))) (add-tap (requiring-resolve 'portal.api/submit)))"))
 
+(defun cider-portal/open ()
+  (interactive)
+  (cider-nrepl-sync-request:eval
+   "(require 'portal.api) (portal.api/tap) (portal.api/open)"))
+
 (defun portal.api/clear ()
   (interactive)
   (cider-nrepl-sync-request:eval "(portal.api/clear)"))

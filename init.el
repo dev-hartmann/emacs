@@ -8,6 +8,7 @@
 (load-file (expand-file-name "ui.el" user-emacs-directory))
 (load-file (expand-file-name "lang-clojure.el" user-emacs-directory))
 (load-file (expand-file-name "lang-go.el" user-emacs-directory))
+(load-file (expand-file-name "lang-rust.el" user-emacs-directory))
 (load-file (expand-file-name "elixir-lang.el" user-emacs-directory))
 ;; (load-file (expand-file-name "org.el" user-emacs-directory))
 

@@ -91,6 +91,7 @@
 (defun dh/search-thing-at-point ()
   (interactive)
   (consult-line (thing-at-point 'symbol)))
+
 (use-package treemacs
   :config
   (setq treemacs-follow-after-init t)
@@ -124,7 +125,6 @@
   ["Zoom"
    ("k" "in" zoom-in :transient t)
    ("j" "out" zoom-out :transient t)])
-
 
 (use-package winum
   :config (winum-mode 1))
@@ -163,6 +163,23 @@
           lisp-data-mode)
          . aggressive-indent-mode))
 
+(use-package tree-sitter
+  :if (executable-find "tree-sitter")
+  :hook (((rustic-mode
+           python-mode
+           go-mode
+           typescript-mode
+           css-mode) . tree-sitter-mode)
+         ((rustic-mode
+           python-mode
+           go-mode
+           typescript-mode
+           css-mode) . tree-sitter-hl-mode)))
+
+(use-package tree-sitter-langs
+  :if (executable-find "tree-sitter")
+  :after tree-sitter)
+
 (use-package super-save
   :config
   (super-save-mode +1)
@@ -181,32 +198,29 @@
   (magit-todos-mode))
 
 (use-package lsp-mode
-  :commands
-  (lsp lsp-deferred)
-  :hook
-  ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
-   (lsp-mode . lsp-enable-which-key-integration))
-  :general
-  (general-define-key
-    :states 'normal
-    "g l" '(:ignore t :which-key "code")
-    "g l l" '(:keymap lsp-command-map :wk "lsp")
-    "g l a" '(lsp-execute-code-action :wk "code action")
-    "g l r" '(lsp-rename :wk "rename"))
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . lsp-enable-which-key-integration)
+  :general (general-define-key
+            :states 'normal
+            "g l"   '(:ignore t :which-key "code")
+            "g l l" '(:keymap lsp-command-map :wk "lsp")
+            "g l a" '(lsp-execute-code-action :wk "code action")
+            "g l r" '(lsp-rename :wk "rename"))
   :init
   (setq lsp-eldoc-enable-hover nil)
   (setq lsp-signature-auto-activate nil)
+  (setq lsp-diagnostics-provider :flycheck)
   (setq lsp-modeline-diagnostics-enable t)
   (setq lsp-before-save-edits t)
   (setq lsp-headerline-breadcrumb-enable nil))
 
 (use-package lsp-ui
-  :hook
-  (lsp-mode . lsp-ui-mode)
+  :hook (lsp-mode . lsp-ui-mode)
+  :config (setq lsp-ui-doc-enable nil)
   :general
   (general-define-key
-     :states '(normal visual motion)
-     "g R" '(lsp-ui-peek-find-references :wk "find references")))
+   :states '(normal visual motion)
+   "g R" '(lsp-ui-peek-find-references :wk "find references")))
 
 (use-package dap-mode
   :after lsp-mode
@@ -230,20 +244,84 @@
   (yasnippet-snippets-initialize))
 
 ;; Completion frontend
-(use-package company
-  :diminish company-mode
-  :hook  ((prog-mode . company-mode)
-          (lsp-mode . company-mode))
-  :config
-  (setq company-idle-delay 0
-        company-minimum-prefix-length 1)
+(use-package hippie-exp
+  :bind ([remap dabbrev-expand] . hippie-expand)
+  :commands (hippie-expand)
   :custom
-  (company-show-numbers t)
-  (company-tooltip-idle-delay 0.25 "Faster!")
-  (company-async-timeout 20 "Some requests take longer"))
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
+  :config
+  (setq hippie-expand-try-functions-list
+        '(try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-expand-dabbrev-from-kill
+          try-complete-lisp-symbol-partially
+          try-complete-lisp-symbol
+          try-complete-file-name-partially
+          try-complete-file-name
+          try-expand-all-abbrevs
+          try-expand-list
+          try-expand-line)))
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+(use-package corfu
+  :straight
+  (corfu :files (:defaults "extensions/*")
+         :includes (corfu-info corfu-echo corfu-history corfu-popupinfo))
+  :custom
+  (corfu-cycle t)                 ; Allows cycling through candidates
+  (corfu-auto t)                  ; Enable auto completion
+  (corfu-auto-prefix 2)
+  (corfu-auto-delay 0.0)
+  (corfu-popupinfo-delay '(0.5 . 0.2))
+  (corfu-preview-current 'insert) ; Do not preview current candidate
+  (corfu-preselect 'prompt)
+  (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
+
+  ;; Optionally use TAB for cycling, default is `corfu-complete'.
+  :bind (:map corfu-map
+              ("M-SPC"      . corfu-insert-separator)
+              ("TAB"        . corfu-next)
+              ([tab]        . corfu-next)
+              ("S-TAB"      . corfu-previous)
+              ([backtab]    . corfu-previous)
+              ("S-<return>" . corfu-insert)
+              ("RET"        . nil))
+  :init
+  (global-corfu-mode)
+  (corfu-history-mode)
+  (corfu-popupinfo-mode)
+  (corfu-echo-mode))
+
+(use-package cape
+  :defer 10
+  :bind ("C-c f" . cape-file)
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
+  (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
+  (cl-pushnew #'cape-file completion-at-point-functions)
+  :config
+  ;; Silence then pcomplete capf, no errors or messages!
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+
+  ;; Ensure that pcomplete does not write to the buffer
+  ;; and behaves as a pure `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+
+(use-package cape-yasnippet
+  :straight (cape-yasnippet :type git :host github :repo "elken/cape-yasnippet")
+  :after yasnippet
+  :hook ((prog-mode . yas-setup-capf)
+         (text-mode . yas-setup-capf)
+         (lsp-mode  . yas-setup-capf)
+         (sly-mode  . yas-setup-capf))
+  :bind (("C-c y" . cape-yasnippet)
+         ("M-+"   . yas-insert-snippet))
+  :config
+  (defun yas-setup-capf ()
+    (setq-local completion-at-point-functions
+                (cons 'cape-yasnippet
+                      completion-at-point-functions)))
+  (push 'cape-yasnippet completion-at-point-functions))
 
 ;; Project management
 (use-package projectile
@@ -270,9 +348,6 @@
 
 (use-package kubernetes)
 
-(use-package kubernetes-evil
-  :after kubernetes)
-
 (use-package revert-buffer-all)
 
 (use-package sql)
@@ -283,21 +358,5 @@
   :init
   (setq sqlformat-command 'pgformatter
         sqlformat-args '("-s2" "-g" "-u1")))
-
-(defun mob-status ()
-  "Show the current status of the mob session in a buffer named `*mob-status*`."
-  (interactive)
-  (let ((buffer (get-buffer-create "*mob-status*")))
-    (with-current-buffer buffer
-      (erase-buffer)
-      (insert (concat "Current branch: " (car (split-string (shell-command-to-string "mob branch") "\n"))))
-      (newline)
-      (call-process "mob" nil t nil "status")
-      (goto-char (point-min))
-      (local-set-key (kbd "q") #'kill-buffer-and-window)
-      (when (fboundp 'evil-local-set-key)
-        (evil-local-set-key 'normal (kbd "q") #'kill-buffer-and-window)))
-    (pop-to-buffer buffer)
-    (highlight-current-line)))
 
 (use-package shell-pop)
