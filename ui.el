@@ -35,18 +35,7 @@
   :if window-system
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
   :init
-  (all-the-icons-completion-mode)
-
-  :config
-  ;; Override default category lookup function.
-  (defun all-the-icons-completion-get-icon (cand cat)
-    "Return the icon for the candidate CAND of completion category CAT."
-    (cl-case cat
-      (file (all-the-icons-completion-get-file-icon cand))
-      (project-file (all-the-icons-completion-get-file-icon cand))
-      (buffer (all-the-icons-completion-get-buffer-icon cand))
-      (project-buffer (all-the-icons-completion-get-buffer-icon cand))
-      (t ""))))
+  (all-the-icons-completion-mode))
 
 (use-package all-the-icons-dired
   :after all-the-icons
@@ -173,6 +162,5 @@
     (pop-to-buffer buffer)))
 
 (use-package focus)
-
 
 (provide 'ui)

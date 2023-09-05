@@ -198,21 +198,31 @@
   (magit-todos-mode))
 
 (use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :hook (lsp-mode . lsp-enable-which-key-integration)
-  :general (general-define-key
-            :states 'normal
-            "g l"   '(:ignore t :which-key "code")
-            "g l l" '(:keymap lsp-command-map :wk "lsp")
-            "g l a" '(lsp-execute-code-action :wk "code action")
-            "g l r" '(lsp-rename :wk "rename"))
+  :commands
+  (lsp lsp-deferred)
+  :hook
+  ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
+   (lsp-mode . lsp-enable-which-key-integration))
+  :general
+  (general-define-key
+   :states 'normal
+   "g l" '(:ignore t :which-key "code")
+   "g l l" '(:keymap lsp-command-map :wk "lsp")
+   "g l a" '(lsp-execute-code-action :wk "code action")
+   "g l r" '(lsp-rename :wk "rename"))
   :init
   (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-completion-provider :none)
   (setq lsp-signature-auto-activate nil)
   (setq lsp-diagnostics-provider :flycheck)
   (setq lsp-modeline-diagnostics-enable t)
   (setq lsp-before-save-edits t)
   (setq lsp-headerline-breadcrumb-enable nil))
+
+(defun corfu-lsp-setup ()
+  (setq-local completion-styles '(orderless)
+              completion-category-defaults nil))
+(add-hook 'lsp-mode-hook #'corfu-lsp-setup)
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -230,98 +240,51 @@
 
 ;; VC and Git
 ;; Snippets
-(use-package yasnippet
-  :straight t
-  :config
-  (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
-  (yas-reload-all)
-  (add-hook 'prog-mode-hook #'yas-minor-mode))
+;; (use-package yasnippet
+;;   :straight t
+;;   :config
+;;   (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+;;   (yas-reload-all)
+;;   (add-hook 'prog-mode-hook #'yas-minor-mode))
 
-(use-package yasnippet-snippets
-  :after yasnippet
-  :straight t
-  :config
-  (yasnippet-snippets-initialize))
+;; (use-package yasnippet-snippets
+;;   :after yasnippet
+;;   :straight t
+;;   :config
+;;   (yasnippet-snippets-initialize))
 
 ;; Completion frontend
-(use-package hippie-exp
-  :bind ([remap dabbrev-expand] . hippie-expand)
-  :commands (hippie-expand)
-  :custom
-  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
-  :config
-  (setq hippie-expand-try-functions-list
-        '(try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-complete-lisp-symbol-partially
-          try-complete-lisp-symbol
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
-          try-expand-list
-          try-expand-line)))
-
+;; Popup completion-at-point
 (use-package corfu
-  :straight
-  (corfu :files (:defaults "extensions/*")
-         :includes (corfu-info corfu-echo corfu-history corfu-popupinfo))
+  :straight (corfu :files (:defaults "extensions/*")
+                   :includes (corfu-info corfu-history))
+  :general
+  (:keymaps 'corfu-map
+            :states '(insert normal visual)
+            "<tab>" #'corfu-next
+            "<escape>" #'corfu-quit
+            "<return>" #'corfu-insert)
   :custom
-  (corfu-cycle t)                 ; Allows cycling through candidates
-  (corfu-auto t)                  ; Enable auto completion
-  (corfu-auto-prefix 2)
-  (corfu-auto-delay 0.0)
-  (corfu-popupinfo-delay '(0.5 . 0.2))
-  (corfu-preview-current 'insert) ; Do not preview current candidate
-  (corfu-preselect 'prompt)
-  (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
-
-  ;; Optionally use TAB for cycling, default is `corfu-complete'.
-  :bind (:map corfu-map
-              ("M-SPC"      . corfu-insert-separator)
-              ("TAB"        . corfu-next)
-              ([tab]        . corfu-next)
-              ("S-TAB"      . corfu-previous)
-              ([backtab]    . corfu-previous)
-              ("S-<return>" . corfu-insert)
-              ("RET"        . nil))
+  (corfu-auto-delay 0.25)
+  (corfu-cycle t)
+  (corfu-auto t)
   :init
   (global-corfu-mode)
-  (corfu-history-mode)
-  (corfu-popupinfo-mode)
-  (corfu-echo-mode))
+  (corfu-popupinfo-mode))
 
-(use-package cape
-  :defer 10
-  :bind ("C-c f" . cape-file)
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
-  (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
-  (cl-pushnew #'cape-file completion-at-point-functions)
+;; Make corfu popup come up in terminal overlay
+(use-package corfu-terminal
+  :if (not (display-graphic-p))
+  :ensure t
   :config
-  ;; Silence then pcomplete capf, no errors or messages!
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+  (corfu-terminal-mode))
 
-  ;; Ensure that pcomplete does not write to the buffer
-  ;; and behaves as a pure `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
-
-(use-package cape-yasnippet
-  :straight (cape-yasnippet :type git :host github :repo "elken/cape-yasnippet")
-  :after yasnippet
-  :hook ((prog-mode . yas-setup-capf)
-         (text-mode . yas-setup-capf)
-         (lsp-mode  . yas-setup-capf)
-         (sly-mode  . yas-setup-capf))
-  :bind (("C-c y" . cape-yasnippet)
-         ("M-+"   . yas-insert-snippet))
+;; Pretty icons for corfu
+(use-package kind-icon
+  :if (display-graphic-p)
+  :after corfu
   :config
-  (defun yas-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons 'cape-yasnippet
-                      completion-at-point-functions)))
-  (push 'cape-yasnippet completion-at-point-functions))
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 ;; Project management
 (use-package projectile
