@@ -1,6 +1,6 @@
 (use-package all-the-icons)
 
-(set-frame-font "Fira Code 12" nil t)
+(set-frame-font "FiraCode Nerd Font 12" nil t)
 
 (use-package doom-themes
     :ensure t

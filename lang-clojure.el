@@ -7,7 +7,7 @@
 ;;
 ;;; Code:
 
-(use-package clojure-mode
+(use-package clojure-ts-mode
   :magic ("^#![^\n]*/\\(clj\\|clojure\\|bb\\|lumo\\)" . clojure-mode)
   :init
   (add-to-list 'auto-mode-alist '("\\.ednl$" . clojure-mode))
