@@ -128,10 +128,8 @@
 
 ;; Put backups and auto-save files in subdirectories, so the
 ;; user-emacs-directory doesn't clutter
-(setq backup-directory-alist
-      `(("." . ,(expand-file-name "backups" user-emacs-directory)))
-      auto-save-file-name-transforms
-      `((".*" ,(expand-file-name "auto-save-list/" user-emacs-directory) t)))
+(setq backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
 
 ;; Configure common Emoji fonts, making it more likely that Emoji will work out of the box
 (set-fontset-font t 'symbol "Apple Color Emoji")
@@ -163,7 +161,7 @@
   (setq mac-option-key-is-meta t)
   (setq mac-option-modifier 'meta)
   (setq mac-right-option-modifier nil)
-(setq mac-left-command-modifier 'meta)
+  (setq mac-left-command-modifier 'meta)
   (global-set-key (kbd "s-s") 'save-buffer)             ;; save
   (global-set-key (kbd "s-S") 'write-file)              ;; save as
   (global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ;; quit
@@ -171,4 +169,5 @@
   (global-set-key (kbd "s-v") 'yank) ;; quit
   (global-set-key (kbd "s-c") 'kill-ring-save);; quit
   (global-set-key (kbd "s-x") 'kill-region))
+
 (provide 'defaults)

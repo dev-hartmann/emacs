@@ -1,4 +1,43 @@
-;; EVIL mode and packages
+;; vim.el --- Evil vim bindings and general config -*- lexical-binding: t -*-
+
+;; Filename: vim.el
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Code:
+
+(require 'thingatpt)
+(defun dh/search-thing-at-point-in-project ()
+  (interactive)
+  (let ((project-root (projectile-project-root)))
+    (when project-root
+      (consult-ripgrep project-root (thing-at-point 'symbol)))))
+
+(defun dh/search-thing-at-point ()
+  (interactive)
+  (consult-line (thing-at-point 'symbol)))
+
+(defun dh/create-vertical-window-and-projectile-find ()
+  (interactive)
+  (split-window-right)
+  (windmove-right)
+  (consult-projectile-find-file)
+  (balance-windows))
+
+(defun dh/close-window-and-balance ()
+  (interactive)
+  (delete-window)
+  (balance-windows))
+
+(use-package transient)
+
+(use-package zoom-frm)
+
+(transient-define-prefix transient-text-operations ()
+  "Text ops"
+  ["Zoom"
+   ("k" "in" zoom-in :transient t)
+   ("j" "out" zoom-out :transient t)])
+
 (use-package general
   :config
   (general-evil-setup)
@@ -141,3 +180,8 @@
   :after evil
   :diminish
   :config (evil-commentary-mode +1))
+
+
+(provide 'vim)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; vim.el ends here

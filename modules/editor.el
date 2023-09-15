@@ -5,7 +5,12 @@
 ;;
 ;;; Code:
 (require 'use-package)
-(require 'custom-functions)
+
+(defun dh/undo-tree-split-side-by-side (original-function &rest args)
+  "Split undo-tree side-by-side"
+  (let ((split-height-threshold nil)
+        (split-width-threshold 0))
+    (apply original-function args)))
 
 (use-package eldoc
   :hook (emacs-lisp-mode cider-mode))
@@ -34,7 +39,6 @@
 
 (use-package imenu
   :straight (:type built-in)
-  :defer t
   :custom
   (imenu-auto-rescan t)
   (imenu-max-item-length 160)
@@ -75,22 +79,9 @@
         embark-become-indicator embark-action-indicator))
 
 (use-package embark-consult
-  :straight t
   :after (embark consult)
-  :demand t
   :hook
   (embark-collect-mode . embark-consult-preview-minor-mode))
-
-(require 'thingatpt)
-(defun dh/search-thing-at-point-in-project ()
-  (interactive)
-  (let ((project-root (projectile-project-root)))
-    (when project-root
-      (consult-ripgrep project-root (thing-at-point 'symbol)))))
-
-(defun dh/search-thing-at-point ()
-  (interactive)
-  (consult-line (thing-at-point 'symbol)))
 
 (use-package treemacs
   :config
@@ -107,24 +98,14 @@
 (use-package undo-fu)
 
 (use-package undo-tree
-  :straight t
   :diminish undo-tree
   :custom
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
   :config
-  (global-undo-tree-mode))
+  (global-undo-tree-mode 1))
 
 (advice-add 'undo-tree-visualize :around #'dh/undo-tree-split-side-by-side)
 
-(use-package transient)
-
-(use-package zoom-frm)
-
-(transient-define-prefix transient-text-operations ()
-  "Text ops"
-  ["Zoom"
-   ("k" "in" zoom-in :transient t)
-   ("j" "out" zoom-out :transient t)])
 
 (use-package winum
   :config (winum-mode 1))
@@ -163,82 +144,12 @@
           lisp-data-mode)
          . aggressive-indent-mode))
 
-(use-package tree-sitter
-  :if (executable-find "tree-sitter")
-  :hook (((rustic-mode
-           python-mode
-           go-mode
-           typescript-mode
-           css-mode) . tree-sitter-mode)
-         ((rustic-mode
-           python-mode
-           go-mode
-           typescript-mode
-           css-mode) . tree-sitter-hl-mode)))
-
-(use-package tree-sitter-langs
-  :if (executable-find "tree-sitter")
-  :after tree-sitter)
-
 (use-package super-save
   :config
   (super-save-mode +1)
   (setq super-save-auto-save-when-idle t))
 
-(use-package magit
-  :bind ("C-x g" . magit-status)
-  :config (add-hook 'with-editor-mode-hook #'evil-insert-state))
 
-(use-package forge
-  :after magit)
-
-(use-package magit-todos
-  :after magit
-  :config
-  (magit-todos-mode))
-
-(use-package lsp-mode
-  :commands
-  (lsp lsp-deferred)
-  :hook
-  ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
-   (lsp-mode . lsp-enable-which-key-integration))
-  :general
-  (general-define-key
-   :states 'normal
-   "g l" '(:ignore t :which-key "code")
-   "g l l" '(:keymap lsp-command-map :wk "lsp")
-   "g l a" '(lsp-execute-code-action :wk "code action")
-   "g l r" '(lsp-rename :wk "rename"))
-  :init
-  (setq lsp-eldoc-enable-hover nil)
-  (setq lsp-completion-provider :none)
-  (setq lsp-signature-auto-activate nil)
-  (setq lsp-diagnostics-provider :flycheck)
-  (setq lsp-modeline-diagnostics-enable t)
-  (setq lsp-before-save-edits t)
-  (setq lsp-headerline-breadcrumb-enable nil))
-
-(defun corfu-lsp-setup ()
-  (setq-local completion-styles '(orderless)
-              completion-category-defaults nil))
-(add-hook 'lsp-mode-hook #'corfu-lsp-setup)
-
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :config (setq lsp-ui-doc-enable nil)
-  :general
-  (general-define-key
-   :states '(normal visual motion)
-   "g R" '(lsp-ui-peek-find-references :wk "find references")))
-
-(use-package dap-mode
-  :after lsp-mode
-  :custom
-  (dap-auto-configure-features '(sessions locals controls tooltip))
-  :config (dap-auto-configure-mode))
-
-;; VC and Git
 ;; Snippets
 ;; (use-package yasnippet
 ;;   :straight t
@@ -307,21 +218,14 @@
 
 (use-package expand-region)
 
-(use-package bazel)
-
-(use-package kubernetes)
-
 (use-package revert-buffer-all)
 
 (use-package sql)
 
-(use-package sqlformat
-  :commands (sqlformat sqlformat-buffer sqlformat-region)
-  :hook (sql-mode . sqlformat-on-save-mode)
-  :init
-  (setq sqlformat-command 'pgformatter
-        sqlformat-args '("-s2" "-g" "-u1")))
-
 (use-package shell-pop)
 
 (use-package nix-mode)
+
+(provide 'editor)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; editor.el ends here
