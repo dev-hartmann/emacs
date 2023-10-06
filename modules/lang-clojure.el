@@ -188,7 +188,10 @@ specific project."
   ;; need this to refresh sesman browser
   (run-hooks 'sesman-post-command-hook))
 
+(use-package neil
+  :config
+  (setq neil-prompt-for-version-p nil
+        neil-inject-dep-to-project-p t))
 
 (provide 'lang-clojure)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; lang-clojure.el ends here

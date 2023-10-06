@@ -7,7 +7,7 @@
 
 
 ;; Font config
-(set-frame-font "Fira Code 12" nil t)
+(set-frame-font "FiraCode Nerd Font 14" nil t)
 
 (use-package nerd-icons)
 
@@ -19,7 +19,6 @@
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 (use-package doom-themes
-  :ensure t
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
