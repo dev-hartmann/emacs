@@ -226,6 +226,8 @@
 
 (use-package nix-mode)
 
+(use-package vterm)
+
 (provide 'editor)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; editor.el ends here
